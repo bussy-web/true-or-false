@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>אמת או המצאת AI?</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;700&display=swap');
+        body { font-family: 'Heebo', sans-serif; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 min-h-screen text-white">
+    <div id="app"></div>
+
+    <script>
+        const { useState } = React;
+        const { createRoot } = ReactDOM;
+
+        function TruthOrAIGame() {
+            const [cards] = useState(() => {
+                const allCards = [
+                    {
+                        id: 1,
+                        text: "מחקר שפורסם בכתב העת המדעי Scientific Reports בשנת 2019 מצא כי אנשים ששוהים בטבע לפחות 120 דקות בשבוע מדווחים על בריאות ותחושת רווחה טובות יותר. החוקרים מאוניברסיטת אקסטר בדקו כמעט 20 אלף משתתפים והראו קשר מובהק בין שהייה בטבע ובין בריאות טובה יותר.",
+                        isTrue: true
+                    },
+                    {
+                        id: 2,
+                        text: "מחקר חדש מצא שאכילת שוקולד מריר משפרת את הזיכרון בתוך שבועיים בלבד. מדענים בינלאומיים גילו שתרכובות מיוחדות בשוקולד מגבירות את כוח המוח באופן דרמטי. המומחים ממליצים לאכול 180 גרם שוקולד מריר ביום כדי לשפר את היכולות הקוגניטיביות, בייחוד בגיל המעבר.",
+                        isTrue: false
+                    },
+                    {
+                        id: 3,
+                        text: "על פי נתונים שפורסמו בשנת 2023, כ-90% מהתושבים בישראל משתמשים באינטרנט. זוהי עלייה ניכרת לעומת שנת 2010. הנתונים מבוססים על סקרים של שימוש באינטרנט ובתקשורת הדיגיטלית בישראל.",
+                        isTrue: true
+                    },
+                    {
+                        id: 4,
+                        text: "מחקר עדכני מצא שהקשבה למוזיקה קלאסית במשך 10 דקות ביום מגדילה את מנת המשכל (IQ) ב-15 נקודות. מסריקת מוחות של אלפי סטודנטים עלה כי מוזיקה קלאסית יוצרת קשרים חדשים במוח ובכך גורמת להעלאה הדרגתית של מנת המשכל. החוקרים ממליצים לילדים בכל גיל להאזין למוזיקה קלאסית לפחות 10 דקות ביום כדי לשפר את ההישגים בלימודים.",
+                        isTrue: false
+                    },
+                    {
+                        id: 5,
+                        text: "מחקר שכלל 3,446 תלמידי תיכון ונערך באוניברסיטת סטנפורד בשנת 2019 מצא כי 96% מהתלמידים לא הצליחו לזהות שארגון העוסק בהכחשת שינויי אקלים קשור לתעשיית הדלקים המאובנים. מחקר אחר שנערך בסטנפורד בשנת 2016 בקרב 7,804 תלמידי תיכון העלה כי יותר מ-80% מהם התקשו להבחין בין פרסומות ובין מאמרים אמיתיים.",
+                        isTrue: true
+                    },
+                    {
+                        id: 6,
+                        text: "גילוי מדעי מהפכני: שתייה של 8 כוסות מים ביום מגדילה את התפוקה האקדמית ב-95%. מומחי בריאות ממליצים בחום לשתות בדיוק 8 כוסות מים ביום, רצוי סביב תקופת המבחנים. מיליוני תלמידים ברחבי העולם כבר אימצו את ההמלצה הזמינה והזולה הזאת. רוב התלמידים דיווחו גם על ביקורים תכופים יותר בשירותים בתקופות מבחנים.",
+                        isTrue: false
+                    }
+                ];
+                return allCards.sort(() => Math.random() - 0.5);
+            });
+
+            const [currentIndex, setCurrentIndex] = React.useState(0);
+            const [votes, setVotes] = React.useState({});
+            const [lockedCards, setLockedCards] = React.useState({});
+            const [showResults, setShowResults] = React.useState(false);
+
+            const currentCard = cards[currentIndex];
+            const currentVotes = votes[currentCard.id] || { truth: 0, ai: 0 };
+            const isLocked = lockedCards[currentCard.id];
+            const hasVoted = currentVotes.truth > 0 || currentVotes.ai > 0;
+
+            const handleVote = (voteType) => {
+                if (isLocked) return;
+                setVotes(prev => ({
+                    ...prev,
+                    [currentCard.id]: {
+                        truth: voteType === 'truth' ? (prev[currentCard.id]?.truth || 0) + 1 : (prev[currentCard.id]?.truth || 0),
+                        ai: voteType === 'ai' ? (prev[currentCard.id]?.ai || 0) + 1 : (prev[currentCard.id]?.ai || 0)
+                    }
+                }));
+            };
+
+            const handleNext = () => {
+                if (hasVoted) {
+                    setLockedCards(prev => ({ ...prev, [currentCard.id]: true }));
+                }
+                if (currentIndex < cards.length - 1) {
+                    setCurrentIndex(currentIndex + 1);
+                    setShowResults(false);
+                }
+            };
+
+            const handlePrev = () => {
+                if (currentIndex > 0) {
+                    setCurrentIndex(currentIndex - 1);
+                    setShowResults(false);
+                }
+            };
+
+            const resetGame = () => {
+                setCurrentIndex(0);
+                setVotes({});
+                setLockedCards({});
+                setShowResults(false);
+            };
+
+            const totalVotes = currentVotes.truth + currentVotes.ai;
+            const truthPercentage = totalVotes > 0 ? Math.round((currentVotes.truth / totalVotes) * 100) : 0;
+            const aiPercentage = totalVotes > 0 ? Math.round((currentVotes.ai / totalVotes) * 100) : 0;
+
+            return React.createElement('div', { className: "min-h-screen p-4 flex items-center justify-center" },
+                React.createElement('div', { className: "max-w-4xl w-full" },
+                    React.createElement('div', { className: "text-center mb-8" },
+                        React.createElement('h1', { className: "text-5xl font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-pink-300" }, "אמת או המצאת AI?"),
+                        React.createElement('p', { className: "text-xl text-gray-300" }, "האם תוכלו לזהות מה אמיתי ומה בדיה?")
+                    ),
+                    React.createElement('div', { className: "mb-6" },
+                        React.createElement('div', { className: "flex justify-between items-center mb-2" },
+                            React.createElement('span', { className: "text-sm text-gray-300" }, `כרטיסייה ${currentIndex + 1} מתוך ${cards.length}`),
+                            React.createElement('button', { onClick: resetGame, className: "px-3 py-1 bg-purple-600 hover:bg-purple-700 rounded-lg text-sm transition-colors" }, "🔄 התחל מחדש")
+                        ),
+                        React.createElement('div', { className: "w-full bg-gray-700 rounded-full h-3" },
+                            React.createElement('div', { className: "bg-gradient-to-r from-green-400 to-blue-500 h-3 rounded-full transition-all duration-300", style: { width: `${((currentIndex + 1) / cards.length) * 100}%` } })
+                        )
+                    ),
+                    React.createElement('div', { className: "bg-white/10 backdrop-blur-lg rounded-3xl p-8 shadow-2xl border border-white/20 mb-6" },
+                        React.createElement('div', { className: "min-h-[300px] flex flex-col justify-center" },
+                            React.createElement('p', { className: "text-xl leading-relaxed text-white mb-6" }, currentCard.text),
+                            isLocked && React.createElement('div', { className: "mb-4 p-4 bg-yellow-500/20 border border-yellow-500/50 rounded-xl" },
+                                React.createElement('p', { className: "text-yellow-300 text-sm text-center" }, "🔒 ההצבעות לכרטיס זה ננעלו")
+                            ),
+                            React.createElement('div', { className: "grid grid-cols-2 gap-4 mb-6" },
+                                React.createElement('button', {
+                                    onClick: () => handleVote('truth'),
+                                    disabled: isLocked,
+                                    className: `py-6 px-8 rounded-2xl text-xl font-bold transition-all transform hover:scale-105 ${isLocked ? 'bg-gray-600 cursor-not-allowed opacity-50' : 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg'}`
+                                }, "✓ אמת"),
+                                React.createElement('button', {
+                                    onClick: () => handleVote('ai'),
+                                    disabled: isLocked,
+                                    className: `py-6 px-8 rounded-2xl text-xl font-bold transition-all transform hover:scale-105 ${isLocked ? 'bg-gray-600 cursor-not-allowed opacity-50' : 'bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 shadow-lg'}`
+                                }, "✗ המצאת AI")
+                            ),
+                            hasVoted && React.createElement('div', { className: "space-y-4" },
+                                React.createElement('button', {
+                                    onClick: () => setShowResults(!showResults),
+                                    className: "w-full py-3 bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-colors"
+                                }, showResults ? 'הסתר תוצאות' : '📊 הצג תוצאות הצבעה'),
+                                showResults && React.createElement('div', { className: "bg-black/30 rounded-xl p-6 space-y-4" },
+                                    React.createElement('h3', { className: "text-lg font-bold text-center mb-4" }, `סך הכל הצביעו: ${totalVotes}`),
+                                    React.createElement('div', { className: "space-y-3" },
+                                        React.createElement('div', null,
+                                            React.createElement('div', { className: "flex justify-between mb-1" },
+                                                React.createElement('span', { className: "text-green-300" }, "✓ אמת"),
+                                                React.createElement('span', { className: "text-green-300 font-bold" }, `${currentVotes.truth} (${truthPercentage}%)`)
+                                            ),
+                                            React.createElement('div', { className: "w-full bg-gray-700 rounded-full h-4" },
+                                                React.createElement('div', { className: "bg-gradient-to-r from-green-400 to-green-600 h-4 rounded-full transition-all duration-500", style: { width: `${truthPercentage}%` } })
+                                            )
+                                        ),
+                                        React.createElement('div', null,
+                                            React.createElement('div', { className: "flex justify-between mb-1" },
+                                                React.createElement('span', { className: "text-red-300" }, "✗ המצאת AI"),
+                                                React.createElement('span', { className: "text-red-300 font-bold" }, `${currentVotes.ai} (${aiPercentage}%)`)
+                                            ),
+                                            React.createElement('div', { className: "w-full bg-gray-700 rounded-full h-4" },
+                                                React.createElement('div', { className: "bg-gradient-to-r from-red-400 to-red-600 h-4 rounded-full transition-all duration-500", style: { width: `${aiPercentage}%` } })
+                                            )
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    ),
+                    React.createElement('div', { className: "flex justify-between items-center" },
+                        React.createElement('button', {
+                            onClick: handlePrev,
+                            disabled: currentIndex === 0,
+                            className: `flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${currentIndex === 0 ? 'bg-gray-600 cursor-not-allowed opacity-50' : 'bg-indigo-600 hover:bg-indigo-700'}`
+                        }, "→ הקודם"),
+                        React.createElement('button', {
+                            onClick: handleNext,
+                            disabled: currentIndex === cards.length - 1 && !hasVoted,
+                            className: `flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${currentIndex === cards.length - 1 && !hasVoted ? 'bg-gray-600 cursor-not-allowed opacity-50' : 'bg-indigo-600 hover:bg-indigo-700'}`
+                        }, "הבא ←")
+                    ),
+                    currentIndex === cards.length - 1 && Object.keys(lockedCards).length === cards.length &&
+                        React.createElement('div', { className: "mt-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl p-6 text-center" },
+                            React.createElement('h2', { className: "text-2xl font-bold mb-2" }, "🎉 סיימתם את כל הכרטיסים!"),
+                            React.createElement('p', { className: "text-lg" }, "כל הכבוד! עכשיו אתם מומחים לזיהוי מידע אמין")
+                        )
+                )
+            );
+        }
+
+        const root = createRoot(document.getElementById('app'));
+        root.render(React.createElement(TruthOrAIGame));
+    </script>
+</body>
+</html>
